@@ -17,3 +17,5 @@ print(indicator_view(wdi_filtered_df, 'Commercial service imports (current US$)'
 
 print(country_view(wdi_filtered_df, 'Sudan').head(10).to_string())
 
+# this is a demonstration
+
