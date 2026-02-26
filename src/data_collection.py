@@ -46,10 +46,38 @@ row_missing_df = pd.DataFrame({
 })
 
 indicators_completeness_df = row_missing_df.groupby('indicator_name').agg({
-    'missing_count': ['mean', 'count'],
-    'missing_percentage': ['mean']
+    'missing_count': ['mean','min', 'max', 'count'],
 }).round(2)
 
-indicators_completeness_df.sort_values(by='missing_count', ascending=True)
+indicators_completeness_df.columns = ['_'.join(col).strip() for col in indicators_completeness_df.columns.values] 
+indicators_completeness_df = indicators_completeness_df.reset_index()
+indicators_completeness_df.sort_values(by='missing_count_mean', ascending=True)
 
-indicators_completeness_df.head(100)
+top_500_complete = indicators_completeness_df.nsmallest(500, 'missing_count_mean')
+
+# Removing redundant population indicators (This dataset has over 40 population indicators and we are only interested in a few.)
+remove_pop = ['Population ages 0-14 (% of total population)', 'Population ages 0-14, female (% of female population)', 'Population ages 0-14, male (% of male population)', 'Population ages 00-04, female (% of female population)', 'Population ages 00-04, male (% of male population)', 'Population ages 05-09, female (% of female population)', 'Population ages 05-09, male (% of male population)', 'Population ages 10-14, female (% of female population)', 'Population ages 10-14, male (% of male population)', 'Population ages 15-19, female (% of female population)', 'Population ages 15-19, male (% of male population)', 'Population ages 15-64 (% of total population)', 'Population ages 15-64, female (% of female population)', 'Population ages 15-64, male (% of male population)', 'Population ages 20-24, female (% of female population)', 'Population ages 20-24, male (% of male population)', 'Population ages 25-29, female (% of female population)', 'Population ages 25-29, male (% of male population)', 'Population ages 30-34, female (% of female population)', 'Population ages 30-34, male (% of male population)', 'Population ages 35-39, female (% of female population)', 'Population ages 35-39, male (% of male population)', 'Population ages 40-44, female (% of female population)', 'Population ages 40-44, male (% of male population)', 'Population ages 45-49, female (% of female population)', 'Population ages 45-49, male (% of male population)', 'Population ages 50-54, female (% of female population)', 'Population ages 50-54, male (% of male population)', 'Population ages 55-59, female (% of female population)', 'Population ages 55-59, male (% of male population)', 'Population ages 60-64, female (% of female population)', 'Population ages 60-64, male (% of male population)', 'Population ages 65 and above (% of total population)', 'Population ages 65 and above, female (% of female population)', 'Population ages 65 and above, male (% of male population)', 'Population ages 65-69, female (% of female population)', 'Population ages 65-69, male (% of male population)', 'Population ages 70-74, female (% of female population)', 'Population ages 70-74, male (% of male population)', 'Population ages 75-79, female (% of female population)', 'Population ages 75-79, male (% of male population)', 'Population ages 80 and above, female (% of female population)', 'Population ages 80 and above, male (% of male population)']
+top_500_complete = top_500_complete[~top_500_complete['indicator_name'].isin(remove_pop)]
+
+print("\nTop 250 Most Complete Indicators:")
+#print(top_500_complete[['indicator_name', 'missing_count_mean', 'missing_count_min','missing_count_max']].head(500).to_string())
+print(top_500_complete['indicator_name'].head(250).to_list())
+
+# Filtering by top 250 complete indicators and seeing how this changes our missing values metrics
+filtered_wdi_df = wdi_df[wdi_df['Indicator Name'].isin(top_500_complete['indicator_name'].head(250).to_list())]
+
+print("\nTop 250 Most Complete Indicators:")
+#print(top_500_complete[['indicator_name', 'missing_count_mean', 'missing_count_min','missing_count_max']].head(500).to_string())
+print(top_500_complete['indicator_name'].head(250).to_list())
+
+# Re-assessing missing values
+total_missing_filtered = filtered_wdi_df.isnull().sum().sum()
+total_cells_filtered = filtered_wdi_df.size
+missing_percentage_filtered = (total_missing_filtered / total_cells_filtered) * 100
+
+print(f"Filtered dataset shape: {filtered_wdi_df.shape[0]} rows × {filtered_wdi_df.shape[1]} columns")
+print(f"Filtered dataset total missing values: {total_missing_filtered:,}")
+print(f"Filtered dataset total cells: {total_cells_filtered:,}")
+print(f"Filtered dataset missing values percentage: {missing_percentage_filtered:.2f}%")
+
+filtered_wdi_df.to_csv('data/processed/WDIfiltered.csv')
