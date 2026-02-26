@@ -36,3 +36,20 @@ for col in wdi_df.columns:
         constant_cols.append(col)
 if constant_cols:
     print(f"Constant columns (same value in all rows): {constant_cols}")
+
+# Getting top 100 indicators in terms of least proportion of missing values across all countries
+row_missing_df = pd.DataFrame({
+    'row_index': range(len(wdi_df)),
+    'indicator_name': wdi_df['Indicator Name'].values,  # Add indicator name
+    'missing_count': wdi_df.isnull().sum(axis=1),
+    'missing_percentage': (wdi_df.isnull().sum(axis=1) / wdi_df.shape[1] * 100).round(2)
+})
+
+indicators_completeness_df = row_missing_df.groupby('indicator_name').agg({
+    'missing_count': ['mean', 'count'],
+    'missing_percentage': ['mean']
+}).round(2)
+
+indicators_completeness_df.sort_values(by='missing_count', ascending=True)
+
+indicators_completeness_df.head(100)
