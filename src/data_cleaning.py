@@ -80,4 +80,17 @@ print(f"Filtered dataset total missing values: {total_missing_filtered:,}")
 print(f"Filtered dataset total cells: {total_cells_filtered:,}")
 print(f"Filtered dataset missing values percentage: {missing_percentage_filtered:.2f}%")
 
-filtered_wdi_df.to_csv('data/processed/WDIfiltered.csv')
+# Dropping cols that still have fewer than 10 years of data available 
+filtered_wdi_df.dropna(thresh = 10)
+
+# Imputing missing values 
+imputed_df = filtered_wdi_df.copy()
+
+imputed_df = imputed_df.fillna(method='ffill', axis=1)
+imputed_df = imputed_df.fillna(method='bfill', axis=1)
+
+# Checking imputation worked
+total_missing_imputed = imputed_df.isnull().sum().sum()
+print(f"Imputed dataset total missing values: {total_missing_imputed:,}")
+
+imputed_df.to_csv('data/processed/WDIcleaned.csv')
