@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 df = pd.read_csv('data/raw/WDICSV.csv')
-display(df.iloc[355158:355162])
+print(df.iloc[355158:355162])
 
 df.shape
 df.columns
@@ -63,4 +63,56 @@ df_pivot.hist(figsize=(12,8), bins=30)
 plt.tight_layout()
 plt.show()
 df_pivot.skew(numeric_only=True)
+
+import numpy as np
+
+df_pivot['GDP_log'] = np.log1p(df_pivot['GDP per capita (constant 2015 US$)'])
+
+plt.figure(figsize=(8,6))
+sns.heatmap(
+    df_pivot.corr(numeric_only=True),
+    annot=True,
+    cmap='coolwarm',
+    fmt=".2f"
+)
+plt.title("Correlation Matrix")
+plt.show()
+
+df_global = df_pivot.groupby('Year').mean(numeric_only=True).reset_index()
+df_global.head()
+
+plt.figure(figsize=(10,6))
+sns.lineplot(data=df_global, x='Year', y='GDP_log')
+plt.title("Global GDP Trend (Log)")
+plt.show()
+
+sns.lineplot(data=df_global, x='Year', y='Renewable energy consumption (% of total final energy consumption)')
+plt.title("Renewable Energy Consumption")
+plt.show()
+
+sns.lineplot(data=df_global, x='Year', y='Access to clean fuels and technologies for cooking (% of population)')
+plt.title("Global Clean Fuel Access Trend")
+plt.show()
+
+sns.scatterplot(
+    data=df_pivot,
+    x='GDP_log',
+    y='Renewable energy consumption (% of total final energy consumption)'
+)
+plt.title("GDP vs Renewable energy consumption")
+plt.show()
+
+sns.scatterplot(
+    data=df_pivot,
+    x='GDP_log',
+    y='Access to clean fuels and technologies for cooking (% of population)'
+)
+plt.title("GDP vs Global Clean Fuel Access Trend")
+plt.show()
+
+plt.figure(figsize=(10,6))
+sns.boxplot(data=df_pivot[['GDP_log','Access to clean fuels and technologies for cooking (% of population)']])
+plt.title("Outlier Detection")
+plt.show()
+
 
