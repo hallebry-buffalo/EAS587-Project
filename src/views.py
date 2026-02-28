@@ -11,14 +11,16 @@ def indicator_view(df, indicator):
     return view
 
 def year_view(df, year):
-    view = df[df['Year'] == year]
+    view = df[['Country Name', 'Indicator Name', f'{year}']]
     return view 
 
 # Testing functions
-wdi_filtered_df = pd.read_csv('data/processed/WDIfiltered.csv')
+wdi_df = pd.read_csv('data/processed/WDIcleaned.csv')
 
-print(indicator_view(wdi_filtered_df, 'Commercial service imports (current US$)').head(10).to_string())
+print(indicator_view(wdi_df, 'Commercial service imports (current US$)').head(10).to_string())
 
-print(country_view(wdi_filtered_df, 'Sudan').head(10).to_string())
+print(country_view(wdi_df, 'Sudan').head(10).to_string())
+
+print(year_view(wdi_df, 1997).head(10).to_string())
 
 

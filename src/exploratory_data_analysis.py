@@ -39,6 +39,7 @@ target_indicators = [
     "Renewable energy consumption (% of total final energy consumption)",
     "GDP per capita (constant 2015 US$)"
 ]
+
 df_focus = df_clean[df_clean['Indicator Name'].isin(target_indicators)]
 
 df_pivot = df_focus.pivot_table(

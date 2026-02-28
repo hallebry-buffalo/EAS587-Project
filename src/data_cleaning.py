@@ -17,6 +17,14 @@ column_info = pd.DataFrame({
     'Null Percentage': (wdi_df.isnull().sum() / len(wdi_df) * 100).values.round(2)
 })
 
+# Dropping unnecessary label columns
+wdi_df.drop(columns= ['Country Code', 'Indicator Code'], inplace=True)
+
+# Converting years to numeric (since we use annual data, this is ideal for easy searching and implementation of views)
+new_cols = list(wdi_df.columns)
+new_cols[2:] = pd.to_numeric(new_cols[2:])
+wdi_df.columns = new_cols
+
 # Assessing missing values
 total_missing = wdi_df.isnull().sum().sum()
 total_cells = wdi_df.size
@@ -81,13 +89,13 @@ print(f"Filtered dataset total cells: {total_cells_filtered:,}")
 print(f"Filtered dataset missing values percentage: {missing_percentage_filtered:.2f}%")
 
 # Dropping cols that still have fewer than 10 years of data available 
-filtered_wdi_df.dropna(thresh = 10)
+filtered_wdi_df = filtered_wdi_df.dropna(thresh = 10)
 
 # Imputing missing values 
 imputed_df = filtered_wdi_df.copy()
 
-imputed_df = imputed_df.fillna(method='ffill', axis=1)
-imputed_df = imputed_df.fillna(method='bfill', axis=1)
+imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='ffill', axis=1)
+imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='bfill', axis=1)
 
 # Checking imputation worked
 total_missing_imputed = imputed_df.isnull().sum().sum()
