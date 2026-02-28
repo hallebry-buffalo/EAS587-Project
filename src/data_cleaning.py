@@ -101,4 +101,4 @@ imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='bfill', axis=1)
 total_missing_imputed = imputed_df.isnull().sum().sum()
 print(f"Imputed dataset total missing values: {total_missing_imputed:,}")
 
-imputed_df.to_csv('data/processed/WDIcleaned.csv')
+imputed_df.to_csv('data/processed/WDIcleaned.csv', index=False)
