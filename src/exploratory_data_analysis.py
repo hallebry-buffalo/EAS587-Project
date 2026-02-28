@@ -10,7 +10,7 @@ df.info()
 df.isna().sum().sum()
 
 df_long = df.melt(
-    id_vars=['Country Name','Country Code','Indicator Name','Indicator Code'],
+    id_vars=['Country Name','Indicator Name'],
     var_name='Year',
     value_name='Value'
 )
