@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv('data/raw/WDICSV.csv')
+df = pd.read_csv('data/processed/WDIcleaned.csv')
 print(df.iloc[355158:355162])
 
 df.shape
