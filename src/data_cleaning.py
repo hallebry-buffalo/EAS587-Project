@@ -20,9 +20,15 @@ column_info = pd.DataFrame({
 # Dropping unnecessary label columns
 wdi_df.drop(columns= ['Country Code', 'Indicator Code'], inplace=True)
 
-# Converting years to numeric (since we use annual data, this is ideal for easy searching and implementation of views)
-new_cols = list(wdi_df.columns)
-new_cols[2:] = pd.to_numeric(new_cols[2:])
+# Converting years to integers (since we use annual data, this is ideal for easy searching and implementation of views)
+new_cols = wdi_df.columns
+
+for i in range(2, len(new_cols)):
+    try:
+        new_cols[i] = int(float(new_cols[i]))  
+    except (ValueError, TypeError):
+        pass
+
 wdi_df.columns = new_cols
 
 # Assessing missing values
