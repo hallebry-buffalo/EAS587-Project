@@ -1,9 +1,13 @@
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
+# Loading processed dataset
 df = pd.read_csv('data/processed/WDIcleaned.csv')
 print(df.iloc[355158:355162])
 
+# Familiarization with data dimensions and checking for missing values 
 df.shape
 df.columns
 df.info()
@@ -15,12 +19,14 @@ df_long = df.melt(
     value_name='Value'
 )
 
+# Reconverting years to numeric datatypes from .read_csv() autoconversion to strings
 df_long['Year'] = pd.to_numeric(df_long['Year'], errors='coerce')
 df_long.head()
 df_long.shape
 df_long = df_long[(df_long['Year'] >= 1990) & (df_long['Year'] <= 2022)]
 df_long['Value'].isna().mean()
 
+# Evaluating indicators by number of missing values (redundant on cleaned/imputed data)
 indicator_completeness = (
     df_long.groupby('Indicator Name')['Value']
     .apply(lambda x: x.notna().mean())
@@ -32,6 +38,7 @@ good_indicators = indicator_completeness[indicator_completeness >= 0.6].index
 df_clean = df_long[df_long['Indicator Name'].isin(good_indicators)]
 df_clean.shape
 
+# Select indicators to perform preliminary EDA on
 target_indicators = [
     "Access to clean fuels and technologies for cooking (% of population)",
     "CO2 emissions (metric tons per capita)",
@@ -40,6 +47,7 @@ target_indicators = [
     "GDP per capita (constant 2015 US$)"
 ]
 
+# Filtering to only sample indicators
 df_focus = df_clean[df_clean['Indicator Name'].isin(target_indicators)]
 
 df_pivot = df_focus.pivot_table(
@@ -52,9 +60,6 @@ df_pivot.head()
 df_pivot.shape
 df_pivot.isna().mean().sort_values(ascending=False)
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 plt.figure(figsize=(8,5))
 sns.heatmap(df_pivot.isna(), cbar=False)
 plt.title("Missing Values Heatmap")
@@ -65,7 +70,6 @@ plt.tight_layout()
 plt.show()
 df_pivot.skew(numeric_only=True)
 
-import numpy as np
 
 df_pivot['GDP_log'] = np.log1p(df_pivot['GDP per capita (constant 2015 US$)'])
 
