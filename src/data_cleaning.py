@@ -21,7 +21,7 @@ column_info = pd.DataFrame({
 wdi_df.drop(columns= ['Country Code', 'Indicator Code'], inplace=True)
 
 # Converting years to integers (since we use annual data, this is ideal for easy searching and implementation of views)
-new_cols = wdi_df.columns
+new_cols = list(wdi_df.columns)
 
 for i in range(2, len(new_cols)):
     try:
