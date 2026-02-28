@@ -10,12 +10,12 @@ def indicator_view(df, indicator):
     return view
 
 def year_view(df, year):
-    view = df[['Country Name', 'Indicator Name', f'{year}']]
+    view = df[['Country Name', 'Indicator Name', str(year)]]
     return view 
 
 # Function to filter WDI data by indicator and year to view the distr. of a single indicator in a given year. (e.g. GDP in 1975)
 def indicator_by_year(df, indicator, year):
-    view = df[df['Indicator Name']==indicator][['Country Name', f'{year}']]
+    view = df[df['Indicator Name']==indicator][['Country Name', str(year)]]
     return view 
 
 # Testing functions

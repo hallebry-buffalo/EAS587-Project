@@ -8,7 +8,5 @@ wdi_df = pd.read_csv('data/processed/WDIcleaned.csv')
 
 # Exploring distribution of indicator in a given year
 
-def indicator_by_year(df):
-    view
 
 

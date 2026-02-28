@@ -85,6 +85,7 @@ print(years[:10])
 year_cols = list(range(1960, 2021)) 
 keep_cols = ['Country Name', 'Indicator Name'] + [year for year in year_cols if year in gu_like_wdi.columns]
 gu_like_wdi_filtered = gu_like_wdi[keep_cols]
+gu_like_wdi_filtered.columns = gu_like_wdi_filtered.columns.astype(str)
 
 print(gu_like_wdi_filtered.head(10))
 
