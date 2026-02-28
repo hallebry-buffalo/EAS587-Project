@@ -33,3 +33,66 @@ print(f"Total missing values: {total_missing:,}")
 print(f"Total cells: {total_cells:,}")
 print(f"Missing values percentage: {missing_percentage:.2f}%")
 
+# getting columns where missing values occur
+cols_with_missing = gu_df.columns[gu_df.isnull().any()].tolist()
+print(f"\nColumns with missing values ({len(cols_with_missing)}):")
+print(cols_with_missing)
+
+# Imputing missing values with 0's since all missing values belong to binary categories marking onset of new armed conflict
+gu_df.fillna(value=0, inplace=True)
+
+# Re-assessing missing values to check imputation 
+total_missing = gu_df.isnull().sum().sum()
+total_cells = gu_df.size
+missing_percentage = (total_missing / total_cells) * 100
+
+print(f"Total missing values: {total_missing:,}")
+print(f"Total cells: {total_cells:,}")
+print(f"Missing values percentage: {missing_percentage:.2f}%")
+
+# Merging GROWup data with WDI data 
+gu_long = pd.melt(
+    gu_df,
+    id_vars=['countryname', 'year'],  
+    var_name='Indicator Name',  
+    value_name='value' 
+)
+
+print("Melted dataframe shape:", gu_long.shape)
+print("\nFirst few rows:")
+print(gu_long.head())
+print("\nUnique indicators:", gu_long['Indicator Name'].nunique())
+
+# Pivoting to get years as columns
+gu_like_wdi = gu_long.pivot(
+    index=['countryname', 'Indicator Name'],
+    columns='year',
+    values='value'
+).reset_index()
+gu_like_wdi.columns.name = None 
+
+gu_like_wdi = gu_like_wdi.rename(columns={'countryname': 'Country Name'})
+
+print("\nReshaped dataframe - Structure like World Bank data:")
+print("Shape:", gu_like_wdi.shape)
+print("\nColumn names (first 10):")
+print(gu_like_wdi.columns[:10].tolist())
+print("\nYears in data (first 10):")
+years = [col for col in gu_like_wdi.columns if isinstance(col, int) or (isinstance(col, str) and col.isdigit())]
+print(years[:10])
+
+# Filtering to keep only shared years between GROWup and WDI sets
+year_cols = list(range(1960, 2021)) 
+keep_cols = ['Country Name', 'Indicator Name'] + [year for year in year_cols if year in gu_like_wdi.columns]
+gu_like_wdi_filtered = gu_like_wdi[keep_cols]
+
+print(gu_like_wdi_filtered.head(10))
+
+# Importing cleaned WDI dataset and merging with GROWup processed data
+wdi_df = pd.read_csv('data/processed/WDIcleaned.csv')
+
+combined_df = pd.concat([wdi_df, gu_like_wdi_filtered], ignore_index=True)
+combined_df = combined_df.sort_values(['Country Name', 'Indicator Name'])
+print(combined_df.head(10))
+
+combined_df.to_csv('data/processed/GROWupWDImerged.csv', index=False)
