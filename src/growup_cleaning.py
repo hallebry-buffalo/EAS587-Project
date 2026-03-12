@@ -89,10 +89,17 @@ gu_like_wdi_filtered.columns = gu_like_wdi_filtered.columns.astype(str)
 
 print(gu_like_wdi_filtered.head(10))
 
+# Imputing NaN values with similar front/backfilling method as WDI
+# Imputing missing values 
+imputed_df = gu_like_wdi_filtered.copy()
+
+imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='ffill', axis=1)
+imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='bfill', axis=1)
+
 # Importing cleaned WDI dataset and merging with GROWup processed data
 wdi_df = pd.read_csv('data/processed/WDIcleaned.csv')
 
-combined_df = pd.concat([wdi_df, gu_like_wdi_filtered], ignore_index=True)
+combined_df = pd.concat([wdi_df, imputed_df], ignore_index=True)
 combined_df = combined_df.sort_values(['Country Name', 'Indicator Name'])
 print(combined_df.head(10))
 
