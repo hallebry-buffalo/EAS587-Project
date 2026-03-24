@@ -13,7 +13,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 # from views import country_view
 # from views import year_view
 # from views import indicator_by_year
-from views import indicator_view
+from phase2.views import indicator_view
 
 
 data_path = 'C:/Users/hb102/OneDrive/Documents/GitHub/EAS587-Project/data'
