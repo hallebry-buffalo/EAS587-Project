@@ -90,16 +90,18 @@ def linreg_align(df, features, target, firstyr, lastyr):
 # Now that we've defined a function to convert time series style data into columns by feature, we can perform multiple linear regression
 
 features = [
-        'warhist_gov',
-        'Military expenditure (% of GDP)',
+        'peaceyears',
+        'peaceyears_gov',
+        'peaceyears_terr',
+        'Life expectancy at birth, total (years)',
         # 'Population growth (annual %)',
         # 'Trade (% of GDP)',
         # 'Inflation, consumer prices (annual %)'
     ]
     
-target = 'Refugees under the mandate of the UNHCR by country or territory of asylum'
+target = 'Refugees under the mandate of the UNHCR by country or territory of origin'
 
-linreg_df = linreg_align(data, features, target, 2000, 2020)
+linreg_df = linreg_align(data, features, target, 1960, 2020)
 
 X = linreg_df[features].values
 y = linreg_df[target].values
