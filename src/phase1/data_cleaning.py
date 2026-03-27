@@ -119,6 +119,7 @@ year_cols = [col for col in imputed_df.columns if col not in metadata_columns]
 
 indicators = [
     'Primary education, pupils',
+    'Secondary education, pupils',
     'Refugees under the mandate of the UNHCR by country or territory of asylum',
     'Refugees under the mandate of the UNHCR by country or territory of origin'
 ]

@@ -19,7 +19,7 @@ data_path = 'C:/Users/hb102/OneDrive/Documents/GitHub/EAS587-Project/data' # rep
 data = pd.read_csv(data_path + '/processed/GROWupWDImerged.csv')
 
 indicator_set = data['Indicator Name'].unique()
-#print(indicator_set)
+print(indicator_set)
 
 year_columns = [col for col in data.columns if col.isdigit()]
 
@@ -198,10 +198,6 @@ def regression_eda(df, features, target, firstyr, lastyr, degree):
     # Evaluating interactions and shape of data considering each feature alone
     if degree > 1:
         X_train, X_test, y_train, y_test, train_r2, train_rmse, test_r2, test_rmse, test_residuals, train_residuals = polynomial_regression(df, features, target, firstyr, lastyr, degree)
-        
-        print("NORMALITY OF RESIDUALS")
-        
-        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
     
     else:
         X_train, X_test, y_train, y_test, train_r2, train_rmse, test_r2, test_rmse, test_residuals, train_residuals = linear_regression(df, features, target, firstyr, lastyr)
@@ -213,7 +209,7 @@ def regression_eda(df, features, target, firstyr, lastyr, degree):
     axes[0].hist(train_residuals, bins=20, edgecolor='black', alpha=0.7)
     axes[0].set_xlabel('Training Data Residuals')
     axes[0].set_ylabel('Frequency')
-    axes[0].set_title('Residual Distribution')
+    axes[0].set_title('Residual Distribution (Assessing normalcy)')
 
     # Checking for Multicollinearity (VIF > 10 indicates multicollinearity)
     vif_data = pd.DataFrame()
@@ -222,25 +218,44 @@ def regression_eda(df, features, target, firstyr, lastyr, degree):
     print(vif_data)
 
 
-# Regression Analysis 1 - Analysing effect of a country's war history on proportion of population fleeing country
+# Regression Analysis 1 - Analysing relationship between a country's war history and proportion of population fleeing said country
 f1 = [
-        'peaceyears',
         'peaceyears_gov',
         'peaceyears_terr',
-        # 'warhist',
-        # 'warhist_gov',
-        # 'warhist_terr'
+        'Military expenditure (% of GDP)',
+        'warhist',
+        'Death rate, crude (per 1,000 people)',
+        'GDP per capita (constant 2015 US$)'
     ]
     
 t1 = 'Refugees under the mandate of the UNHCR by country or territory of origin'
 
-regression_eda(data, f1, t1, 2000, 2020, 1)
+regression_eda(data, f1, t1, 2015, 2020, 1)
 
-linear_regression(data, f1, t1, 2000, 2020)
+linear_regression(data, f1, t1, 2015, 2020)
 
 # Don't want to consider polynomials above degree 5 since this very likely indicates overfitting
 for i in range(2,6):
-    polynomial_regression(data, f1, t1, 2000, 2020, i)
+    polynomial_regression(data, f1, t1, 2015, 2020, i)
 
-# Regression Analysis 1 - Analysing effect of a country's war history on proportion of population fleeing country
+# Regression Analysis 2 - Analysing relationship of a country's economic profile and life expectancy
+
+f2 = [
+    'Net official development assistance and official aid received (constant 2023 US$)',
+    'Foreign direct investment, net inflows (% of GDP)',
+    'Final consumption expenditure (current US$)',
+    'Official exchange rate (LCU per US$, period average)',
+    'GDP per capita (constant 2015 US$)',
+    'Net primary income (Net income from abroad) (current US$)'
+]
+
+t2 = 'Life expectancy at birth, total (years)'
+
+regression_eda(data, f2, t2, 2010, 2024, 1)
+
+linear_regression(data, f2, t2, 2010, 2024)
+
+for i in range(2,6):
+    polynomial_regression(data, f2, t2, 2010, 2024, i)
+
 

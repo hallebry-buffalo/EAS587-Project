@@ -182,7 +182,7 @@ def residual_analysis(residuals, indicator, country):
     axes[1, 1].set_title('Partial Autocorrelation Function (PACF)')
     axes[1, 1].grid(True, alpha=0.3)
 
-def res_arima(residuals, max_p=3, max_d=1, max_q=3, ic='aic'):
+def res_arima(residuals, max_p=5, max_d=1, max_q=5, ic='aic'):
     '''
     Function to fit ARIMA time series on residuals if residual analysis shows non-white noise process
     
@@ -376,19 +376,74 @@ def forecast_with_trend(series, indicator, country, frac=0.5, test_size=0.1, res
     return metrics, train_test_results
 
 
-indicator = 'Commercial service imports (current US$)'
-country = 'Afghanistan'
-ts = get_ts(data, indicator, country)
+# # Time Series Analysis 1 - Carbon Intensity of GDP in United States 
+# indicator1 = 'Carbon intensity of GDP (kg CO2e per constant 2015 US$ of GDP)'
+# country1 = 'United States'
+# ts = get_ts(data, indicator1, country1)
 
-plot_ts(ts, indicator, country, 0.1)
-train, test = train_test_split(ts, test_size=0.1, shuffle=False)
+# plot_ts(ts, indicator1, country1, 0.1)
+# train, test = train_test_split(ts, test_size=0.1, shuffle=False)
 
-trend, residuals = trend_detect(train, indicator, country, frac=0.5)
+# trend, residuals = trend_detect(train, indicator1, country1, frac=0.5)
 
-residual_analysis(residuals, indicator, country)
+# residual_analysis(residuals, indicator1, country1)
 
-metrics, results = forecast_with_trend(ts, indicator, country, 0.5, 0.1, residual_arima=True)
+# metrics, results = forecast_with_trend(ts, indicator1, country1, frac=0.5, test_size=0.1, residual_arima=True)
 
-print(results['test_predictions'].values)
-print(results['test'].values)
-print(metrics)
+# print(results['test_predictions'].values)
+# print(results['test'].values)
+# print(metrics)
+
+# # Time Series Analysis 2 - 
+# indicator2 = 'Mortality rate, under-5 (per 1,000 live births)'
+# country2 = 'West Bank and Gaza'
+# ts2 = get_ts(data, indicator2, country2)
+
+# plot_ts(ts2, indicator2, country2, 0.1)
+# train2, test2 = train_test_split(ts2, test_size=0.1, shuffle=False)
+
+# trend2, residuals2 = trend_detect(train2, indicator2, country2, frac=0.5)
+
+# residual_analysis(residuals2, indicator2, country2)
+
+# metrics2, results2 = forecast_with_trend(ts2, indicator2, country2, frac=0.5, test_size=0.1, residual_arima=True)
+
+# print(results2['test_predictions'].values)
+# print(results2['test'].values)
+# print(metrics2)
+
+# # Time Series Analysis 3 - 
+# indicator3 = 'Adjusted savings: mineral depletion (% of GNI)'
+# country3 = 'Congo, Dem. Rep.'
+# ts3 = get_ts(data, indicator3, country3)
+
+# plot_ts(ts3, indicator3, country3, 0.1)
+# train3, test3 = train_test_split(ts3, test_size=0.1, shuffle=False)
+
+# trend3, residuals3 = trend_detect(train3, indicator3, country3, frac=0.5)
+
+# residual_analysis(residuals3, indicator3, country3)
+
+# metrics3, results3 = forecast_with_trend(ts3, indicator3, country3, frac=0.5, test_size=0.1, residual_arima=True)
+
+# print(results3['test_predictions'].values)
+# print(results3['test'].values)
+# print(metrics3)
+
+# Time Series Analysis 4 - 
+indicator4 = 'Net migration'
+country4 = 'China'
+ts4 = get_ts(data, indicator4, country4)
+
+plot_ts(ts4, indicator4, country4, 0.1)
+train4, test4 = train_test_split(ts4, test_size=0.1, shuffle=False)
+
+trend4, residuals4 = trend_detect(train4, indicator4, country4, frac=0.5)
+
+residual_analysis(residuals4, indicator4, country4)
+
+metrics4, results4 = forecast_with_trend(ts4, indicator4, country4, frac=0.5, test_size=0.1, residual_arima=True)
+
+print(results4['test_predictions'].values)
+print(results4['test'].values)
+print(metrics4)
