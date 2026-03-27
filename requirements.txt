@@ -3,9 +3,8 @@ numpy>=1.24.0
 pandas>=2.0.0
 seaborn>=0.12.0
 scikit-learn>=1.3.0
-<<<<<<< HEAD
-=======
 matplotlib
 statsmodels
 adtk
->>>>>>> 71ef6d1af425f8a7af2fdfc52fc1a2ee168d0cdb
+mcp
+pickle

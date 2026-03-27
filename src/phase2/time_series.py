@@ -256,7 +256,7 @@ def res_arima(residuals, max_p=5, max_d=1, max_q=5, ic='aic'):
     
     return best_model, best_order, results_df
 
-def forecast_with_trend(series, indicator, country, frac=0.5, test_size=0.1, residual_arima = False):
+def forecast_with_trend(series, indicator, country, frac=0.5, test_size=0.1, residual_arima = True):
     '''
     Function to forecast using LOWESS trend with train/test validation
     
