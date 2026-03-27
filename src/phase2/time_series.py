@@ -216,8 +216,6 @@ def res_arima(residuals, max_p=5, max_d=1, max_q=5, ic='aic'):
     for p in range(max_p + 1):
         for d in range(dmin, max_d + 1):
             for q in range(max_q + 1):
-                if p == 0 and d == 0 and q == 0:
-                    continue  # Skipping ARIMA(0,0,0) model
                     
                 try:
                     model = ARIMA(residuals, order=(p, d, q))
