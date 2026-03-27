@@ -1,8 +1,10 @@
 from pathlib import Path
 import warnings
-import matplotlib.pyplot as plt
+
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
@@ -10,123 +12,230 @@ from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 RANDOM_STATE = 42
-BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
+
+# ---------------------------------------------------
+# Paths
+# ---------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 FIGURES_DIR = BASE_DIR / "outputs" / "figures"
 TABLES_DIR = BASE_DIR / "outputs" / "tables"
+
 for folder in [FIGURES_DIR, TABLES_DIR]:
     folder.mkdir(parents=True, exist_ok=True)
 
-def load_main_data(path):
-    df = pd.read_csv(path)
-    year_cols = [c for c in df.columns if str(c).isdigit()]
-    return df[["Country Name", "Indicator Name"] + year_cols].copy()
+WDI_PATH = PROCESSED_DIR / "WDIcleaned.csv"
+GROWUP_PATH = RAW_DIR / "GROWupRaw.csv"
 
-def load_country_metadata(path):
-    meta = pd.read_csv(path)
-    meta = meta[["Table Name", "Region", "Income Group"]].rename(columns={"Table Name": "Country Name"})
-    return meta.drop_duplicates()
+# ---------------------------------------------------
+# Helper functions
+# ---------------------------------------------------
+def year_stack(df: pd.DataFrame, indicator: str, firstyr: int, lastyr: int) -> pd.DataFrame:
+    indicator_df = df[df["Indicator Name"] == indicator].copy()
+    year_cols = [str(year) for year in range(firstyr, lastyr + 1)]
+    year_cols = [col for col in year_cols if col in indicator_df.columns]
 
-def melt_indicator(df, indicator, first_year, last_year):
-    year_cols = [str(y) for y in range(first_year, last_year + 1)]
-    temp = df[df["Indicator Name"] == indicator].copy()
-    melted = temp.melt(id_vars=["Country Name"], value_vars=year_cols, var_name="Year", value_name=indicator)
-    melted["Year"] = melted["Year"].astype(int)
+    if len(year_cols) == 0:
+        raise ValueError(f"No year columns found for indicator: {indicator}")
+
+    melted = pd.melt(
+        indicator_df,
+        id_vars=["Country Name"],
+        value_vars=year_cols,
+        var_name="Year",
+        value_name=indicator
+    )
+
+    melted["Year"] = pd.to_numeric(melted["Year"], errors="coerce")
+    melted = melted.dropna(subset=[indicator, "Year"])
     return melted
 
-def build_country_year_panel(df, indicators, first_year, last_year):
-    panel = melt_indicator(df, indicators[0], first_year, last_year)
-    for ind in indicators[1:]:
-        panel = panel.merge(melt_indicator(df, ind, first_year, last_year), on=["Country Name", "Year"], how="inner")
-    return panel
 
-def attach_country_metadata(panel, meta):
-    df = panel.merge(meta, on="Country Name", how="left")
-    return df[df["Region"].notna()].copy()
+def build_wdi_panel(df: pd.DataFrame, indicators: list[str], firstyr: int, lastyr: int) -> pd.DataFrame:
+    result_df = year_stack(df, indicators[0], firstyr, lastyr)
 
-def add_log_features(df, cols_to_log):
-    out = df.copy()
-    for col in cols_to_log:
-        min_val = out[col].min()
-        if pd.notna(min_val) and min_val > -1:
-            out[f"log_{col}"] = np.log1p(out[col])
-        else:
-            out[f"log_{col}"] = np.log1p(out[col] + abs(min_val) + 1)
-    return out
+    for indicator in indicators[1:]:
+        next_df = year_stack(df, indicator, firstyr, lastyr)
+        result_df = pd.merge(
+            result_df,
+            next_df,
+            on=["Country Name", "Year"],
+            how="inner"
+        )
 
-def aggregate_recent_country_profile(panel, feature_cols, start_year, end_year):
-    df = panel[(panel["Year"] >= start_year) & (panel["Year"] <= end_year)].copy()
-    agg_map = {col: "mean" for col in feature_cols}
-    agg_map["Region"] = "first"
-    agg_map["Income Group"] = "first"
-    return df.groupby("Country Name", as_index=False).agg(agg_map)
+    return result_df
 
-def run_kmeans(country_df, feature_cols, out_prefix="phase2_kmeans", k_values=range(2, 9)):
-    model_df = country_df[["Country Name", "Region", "Income Group"] + feature_cols].dropna().reset_index(drop=True)
-    X_scaled = StandardScaler().fit_transform(model_df[feature_cols])
 
-    best_model, best_k, best_score = None, None, -1
-    rows = []
-    for k in k_values:
-        km = KMeans(n_clusters=k, random_state=RANDOM_STATE, n_init=20)
-        labels = km.fit_predict(X_scaled)
+def load_growup_features(path: Path, firstyr: int, lastyr: int) -> pd.DataFrame:
+    growup = pd.read_csv(path)
+
+    needed_cols = ["year", "countryname", "warhist", "peaceyears"]
+    missing_cols = [col for col in needed_cols if col not in growup.columns]
+    if missing_cols:
+        raise ValueError(f"Missing columns in GROWupRaw.csv: {missing_cols}")
+
+    growup = growup[needed_cols].copy()
+    growup = growup.rename(columns={
+        "year": "Year",
+        "countryname": "Country Name"
+    })
+
+    growup["Year"] = pd.to_numeric(growup["Year"], errors="coerce")
+    growup = growup[(growup["Year"] >= firstyr) & (growup["Year"] <= lastyr)]
+
+    growup = growup.groupby(["Country Name", "Year"], as_index=False).mean(numeric_only=True)
+    return growup
+
+
+def prepare_clustering_data(firstyr: int = 2000, lastyr: int = 2020, avg_start: int = 2015, avg_end: int = 2020) -> pd.DataFrame:
+    wdi = pd.read_csv(WDI_PATH)
+    wdi.columns = wdi.columns.astype(str).str.strip()
+
+    required_cols = ["Country Name", "Indicator Name"]
+    for col in required_cols:
+        if col not in wdi.columns:
+            raise ValueError(f"{col} not found in WDIcleaned.csv")
+
+    indicators = [
+        "GDP per capita (constant 2015 US$)",
+        "Life expectancy at birth, total (years)",
+        "Urban population (% of total population)",
+        "Military expenditure (% of GDP)"
+    ]
+
+    wdi_panel = build_wdi_panel(
+        df=wdi,
+        indicators=indicators,
+        firstyr=firstyr,
+        lastyr=lastyr
+    )
+
+    growup_panel = load_growup_features(GROWUP_PATH, firstyr, lastyr)
+
+    final_df = pd.merge(
+        wdi_panel,
+        growup_panel,
+        on=["Country Name", "Year"],
+        how="inner"
+    )
+
+    numeric_cols = [
+        "GDP per capita (constant 2015 US$)",
+        "Life expectancy at birth, total (years)",
+        "Urban population (% of total population)",
+        "Military expenditure (% of GDP)",
+        "warhist",
+        "peaceyears"
+    ]
+
+    for col in numeric_cols:
+        final_df[col] = pd.to_numeric(final_df[col], errors="coerce")
+
+    final_df["GDP_log"] = np.log1p(final_df["GDP per capita (constant 2015 US$)"])
+
+    final_df = final_df[
+        [
+            "Country Name",
+            "Year",
+            "GDP_log",
+            "Life expectancy at birth, total (years)",
+            "Urban population (% of total population)",
+            "Military expenditure (% of GDP)",
+            "warhist",
+            "peaceyears"
+        ]
+    ].dropna()
+
+    # Average country values over recent years
+    final_df = final_df[(final_df["Year"] >= avg_start) & (final_df["Year"] <= avg_end)]
+
+    country_profile = final_df.groupby("Country Name", as_index=False).mean(numeric_only=True)
+
+    return country_profile
+
+
+# ---------------------------------------------------
+# Main clustering
+# ---------------------------------------------------
+def run_clustering():
+    df = prepare_clustering_data()
+
+    feature_cols = [
+        "GDP_log",
+        "Life expectancy at birth, total (years)",
+        "Urban population (% of total population)",
+        "Military expenditure (% of GDP)",
+        "warhist",
+        "peaceyears"
+    ]
+
+    X = df[feature_cols]
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    k_results = []
+    best_k = None
+    best_score = -1
+    best_model = None
+
+    for k in range(2, 9):
+        kmeans = KMeans(n_clusters=k, random_state=RANDOM_STATE, n_init=20)
+        labels = kmeans.fit_predict(X_scaled)
         score = silhouette_score(X_scaled, labels)
-        rows.append({"k": k, "silhouette_score": score})
+
+        k_results.append({
+            "k": k,
+            "silhouette_score": score
+        })
+
         if score > best_score:
-            best_model, best_k, best_score = km, k, score
+            best_score = score
+            best_k = k
+            best_model = kmeans
 
-    pd.DataFrame(rows).to_csv(TABLES_DIR / f"{out_prefix}_silhouette_scores.csv", index=False)
-    model_df["Cluster"] = best_model.predict(X_scaled)
+    results_df = pd.DataFrame(k_results)
+    results_df.to_csv(TABLES_DIR / "clustering_model_selection.csv", index=False)
 
-    coords = PCA(n_components=2, random_state=RANDOM_STATE).fit_transform(X_scaled)
-    model_df["PC1"], model_df["PC2"] = coords[:, 0], coords[:, 1]
+    df["Cluster"] = best_model.predict(X_scaled)
+
+    # Save cluster assignments
+    df.sort_values(["Cluster", "Country Name"]).to_csv(
+        TABLES_DIR / "country_cluster_assignments.csv",
+        index=False
+    )
+
+    # PCA for 2D visualization
+    pca = PCA(n_components=2, random_state=RANDOM_STATE)
+    coords = pca.fit_transform(X_scaled)
+
+    plot_df = df.copy()
+    plot_df["PC1"] = coords[:, 0]
+    plot_df["PC2"] = coords[:, 1]
 
     plt.figure(figsize=(10, 7))
-    for cid in sorted(model_df["Cluster"].unique()):
-        s = model_df[model_df["Cluster"] == cid]
-        plt.scatter(s["PC1"], s["PC2"], label=f"Cluster {cid}", alpha=0.75)
-    plt.xlabel("PC1"); plt.ylabel("PC2"); plt.title(f"K-Means Clusters (best k = {best_k})")
-    plt.legend(); plt.tight_layout()
-    plt.savefig(FIGURES_DIR / f"{out_prefix}_cluster_plot.png", dpi=300); plt.close()
+    for cluster_id in sorted(plot_df["Cluster"].unique()):
+        subset = plot_df[plot_df["Cluster"] == cluster_id]
+        plt.scatter(subset["PC1"], subset["PC2"], label=f"Cluster {cluster_id}", alpha=0.75)
 
-    model_df.sort_values(["Cluster", "Country Name"]).to_csv(TABLES_DIR / f"{out_prefix}_cluster_membership.csv", index=False)
-    print("Best k:", best_k)
+    plt.xlabel("PC1")
+    plt.ylabel("PC2")
+    plt.title(f"K-Means Clustering of Countries (best k = {best_k})")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(FIGURES_DIR / "phase2_kmeans_cluster_plot.png", dpi=300)
+    plt.show()
+
+    print("\nBest k:", best_k)
     print("Best silhouette score:", round(best_score, 4))
 
+    print("\nSaved files:")
+    print(TABLES_DIR / "clustering_model_selection.csv")
+    print(TABLES_DIR / "country_cluster_assignments.csv")
+    print(FIGURES_DIR / "phase2_kmeans_cluster_plot.png")
+
+
 if __name__ == "__main__":
-    merged_path = PROCESSED_DIR / "GROWupWDImerged.csv"
-    if not merged_path.exists():
-        merged_path = BASE_DIR / "GROWupWDImerged.csv"
-    country_meta_path = RAW_DIR / "WDICountry.csv"
-    if not country_meta_path.exists():
-        country_meta_path = BASE_DIR / "WDICountry.csv"
-
-    data = load_main_data(merged_path)
-    country_meta = load_country_metadata(country_meta_path)
-
-    raw_features = [
-        "GDP per capita (constant 2015 US$)",
-        "Life expectancy at birth, total (years)",
-        "Urban population (% of total population)",
-        "Military expenditure (% of GDP)",
-        "warhist", "peaceyears",
-        "Refugees under the mandate of the UNHCR by country or territory of origin",
-    ]
-    panel = build_country_year_panel(data, raw_features, 2000, 2020)
-    panel = attach_country_metadata(panel, country_meta)
-    panel = add_log_features(panel, [
-        "GDP per capita (constant 2015 US$)",
-        "Refugees under the mandate of the UNHCR by country or territory of origin",
-    ])
-    features = [
-        "log_GDP per capita (constant 2015 US$)",
-        "Life expectancy at birth, total (years)",
-        "Urban population (% of total population)",
-        "Military expenditure (% of GDP)",
-        "warhist", "peaceyears",
-        "log_Refugees under the mandate of the UNHCR by country or territory of origin",
-    ]
-    profile = aggregate_recent_country_profile(panel, features, 2015, 2020)
-    run_kmeans(profile, features)
+    run_clustering()
