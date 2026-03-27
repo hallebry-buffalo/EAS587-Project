@@ -13,9 +13,6 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", category=FutureWarning)
 RANDOM_STATE = 42
 
-# ---------------------------------------------------
-# Paths
-# ---------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
@@ -29,9 +26,7 @@ for folder in [FIGURES_DIR, TABLES_DIR]:
 WDI_PATH = PROCESSED_DIR / "WDIcleaned.csv"
 GROWUP_PATH = RAW_DIR / "GROWupRaw.csv"
 
-# ---------------------------------------------------
 # Helper functions
-# ---------------------------------------------------
 def year_stack(df: pd.DataFrame, indicator: str, firstyr: int, lastyr: int) -> pd.DataFrame:
     indicator_df = df[df["Indicator Name"] == indicator].copy()
     year_cols = [str(year) for year in range(firstyr, lastyr + 1)]
@@ -155,10 +150,8 @@ def prepare_clustering_data(firstyr: int = 2000, lastyr: int = 2020, avg_start: 
 
     return country_profile
 
+#clustering
 
-# ---------------------------------------------------
-# Main clustering
-# ---------------------------------------------------
 def run_clustering():
     df = prepare_clustering_data()
 
