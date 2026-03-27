@@ -12,9 +12,6 @@ from sklearn.metrics import r2_score, mean_squared_error
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-# from views import country_view
-# from views import year_view
-# from views import indicator_by_year
 from views import indicator_view
 
 

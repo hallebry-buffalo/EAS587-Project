@@ -107,9 +107,7 @@ filtered_wdi_df = filtered_wdi_df.dropna(thresh = 10)
 
 # Imputing missing values 
 imputed_df = filtered_wdi_df.copy()
-
-imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='ffill', axis=1)
-imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='bfill', axis=1)
+imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].ffill(axis=1).bfill(axis=1)
 
 # Checking imputation worked
 total_missing_imputed = imputed_df.isnull().sum().sum()

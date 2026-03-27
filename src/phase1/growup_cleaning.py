@@ -73,7 +73,7 @@ gu_like_wdi.columns.name = None
 
 gu_like_wdi = gu_like_wdi.rename(columns={'countryname': 'Country Name'})
 
-print("\nReshaped dataframe - Structure like World Bank data:")
+print("\nReshaped dataframe - Structure like WDI:")
 print("Shape:", gu_like_wdi.shape)
 print("\nColumn names (first 10):")
 print(gu_like_wdi.columns[:10].tolist())
@@ -90,17 +90,26 @@ gu_like_wdi_filtered.columns = gu_like_wdi_filtered.columns.astype(str)
 print(gu_like_wdi_filtered.head(10))
 
 # Imputing NaN values with similar front/backfilling method as WDI
-# Imputing missing values 
 imputed_df = gu_like_wdi_filtered.copy()
-
-imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='ffill', axis=1)
-imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].fillna(method='bfill', axis=1)
+imputed_df.iloc[:, 2:] = imputed_df.iloc[:, 2:].ffill(axis=1).bfill(axis=1)
 
 # Importing cleaned WDI dataset and merging with GROWup processed data
 wdi_df = pd.read_csv('data/processed/WDIcleaned.csv')
 
 combined_df = pd.concat([wdi_df, imputed_df], ignore_index=True)
 combined_df = combined_df.sort_values(['Country Name', 'Indicator Name'])
+combined_df.iloc[:, 2:] = combined_df.iloc[:, 2:].ffill(axis=1).bfill(axis=1)
 print(combined_df.head(10))
+# We determined any remaining NaN values to belong to countries that aren't represented in WDI and therefore drop these rows
+combined_df = combined_df.dropna()
+
+# Final missing value check
+total_missing = combined_df.isnull().sum().sum()
+total_cells = combined_df.size
+missing_percentage = (total_missing / total_cells) * 100
+
+print(f"Final missing values: {total_missing:,}")
+print(f"Final cells: {total_cells:,}")
+print(f"Final values percentage: {missing_percentage:.2f}%")
 
 combined_df.to_csv('data/processed/GROWupWDImerged.csv', index=False)
