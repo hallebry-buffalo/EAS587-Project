@@ -16,9 +16,6 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", category=FutureWarning)
 RANDOM_STATE = 42
 
-# ---------------------------------------------------
-# Paths
-# ---------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
@@ -33,9 +30,7 @@ for folder in [MODELS_DIR, FIGURES_DIR, TABLES_DIR]:
 WDI_PATH = PROCESSED_DIR / "WDIcleaned.csv"
 GROWUP_PATH = RAW_DIR / "GROWupRaw.csv"
 
-# ---------------------------------------------------
 # Helper functions
-# ---------------------------------------------------
 def year_stack(df: pd.DataFrame, indicator: str, firstyr: int, lastyr: int) -> pd.DataFrame:
     """
     Convert one wide-format indicator into long format:
@@ -182,10 +177,7 @@ def prepare_model_data(firstyr: int = 2000, lastyr: int = 2020) -> pd.DataFrame:
 
     return final_df
 
-
-# ---------------------------------------------------
-# Main KNN model
-# ---------------------------------------------------
+#KNN model
 def run_knn():
     df = prepare_model_data(firstyr=2000, lastyr=2020)
 
