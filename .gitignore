@@ -1,2 +1,25 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-*
+﻿# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.class
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db# Python package files
+*.egg-info/
+dist/
+build/
