@@ -19,4 +19,4 @@ How to Replicate Phase 1 Results:
     - Python 3.8+
     - Node.js (for MCP Inspector)
  2. Set correct data path in time_series_mcp.py to merged, clean data (i.e.       data_path = 'C:/path/to/your/GROWupWDImerged.csv')
- 3. In terminal, run the command 'npx @modelcontextprotocol/inspector python time_series_mcp.py' to access the MCP inspector in your browser. This will open a web interface at http://localhost:5173 to test each tool.
+ 3. In terminal, run the command 'npx @modelcontextprotocol/inspector python path/to/time_series_mcp.py' to access the MCP inspector in your browser. This will open a web interface at http://localhost:5173 to test each tool.
