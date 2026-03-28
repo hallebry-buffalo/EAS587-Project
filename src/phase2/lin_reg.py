@@ -239,7 +239,6 @@ for i in range(2,6):
     polynomial_regression(data, f1, t1, 2015, 2020, i)
 
 # Regression Analysis 2 - Analysing relationship of a country's economic profile and life expectancy
-
 f2 = [
     'Net official development assistance and official aid received (constant 2023 US$)',
     'Foreign direct investment, net inflows (% of GDP)',

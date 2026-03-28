@@ -374,23 +374,23 @@ def forecast_with_trend(series, indicator, country, frac=0.5, test_size=0.1, res
     return metrics, train_test_results
 
 
-# # Time Series Analysis 1 - Carbon Intensity of GDP in United States 
-# indicator1 = 'Carbon intensity of GDP (kg CO2e per constant 2015 US$ of GDP)'
-# country1 = 'United States'
-# ts = get_ts(data, indicator1, country1)
+# Time Series Analysis 1 - Carbon Intensity of GDP in United States 
+indicator1 = 'Carbon intensity of GDP (kg CO2e per constant 2015 US$ of GDP)'
+country1 = 'United States'
+ts = get_ts(data, indicator1, country1)
 
-# plot_ts(ts, indicator1, country1, 0.1)
-# train, test = train_test_split(ts, test_size=0.1, shuffle=False)
+plot_ts(ts, indicator1, country1, 0.1)
+train, test = train_test_split(ts, test_size=0.1, shuffle=False)
 
-# trend, residuals = trend_detect(train, indicator1, country1, frac=0.5)
+trend, residuals = trend_detect(train, indicator1, country1, frac=0.5)
 
-# residual_analysis(residuals, indicator1, country1)
+residual_analysis(residuals, indicator1, country1)
 
-# metrics, results = forecast_with_trend(ts, indicator1, country1, frac=0.5, test_size=0.1, residual_arima=True)
+metrics, results = forecast_with_trend(ts, indicator1, country1, frac=0.5, test_size=0.1, residual_arima=True)
 
-# print(results['test_predictions'].values)
-# print(results['test'].values)
-# print(metrics)
+print(results['test_predictions'].values)
+print(results['test'].values)
+print(metrics)
 
 # # Time Series Analysis 2 - 
 # indicator2 = 'Mortality rate, under-5 (per 1,000 live births)'
