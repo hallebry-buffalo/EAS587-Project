@@ -20,3 +20,31 @@ How to Replicate Phase 1 Results:
     - Node.js (for MCP Inspector)
  2. Set correct data path in time_series_mcp.py to merged, clean data (i.e.       data_path = 'C:/path/to/your/GROWupWDImerged.csv')
  3. In terminal, run the command 'npx @modelcontextprotocol/inspector python path/to/time_series_mcp.py' to access the MCP inspector in your browser. This will open a web interface at http://localhost:5173 to test each tool.
+
+## Phase 3 Databricks Instructions
+
+Phase 3 notebooks are exported in `src/phase3/`.
+
+1. Upload these raw files to the Databricks volume path `/Volumes/workspace/default/raw/`:
+   - `data/raw/WDICSV.csv`
+   - `data/raw/GROWupRaw.csv`
+2. Import the notebooks in this order:
+   - `src/phase3/bronze_layer.ipynb`
+   - `src/phase3/silver_layer.ipynb`
+   - `src/phase3/gold_layer.ipynb`
+   - `src/phase3/spark_mllib_kmeans.ipynb`
+3. Run `bronze_layer.ipynb` to create the Bronze Delta tables:
+   - `bronze_wdi_df`
+   - `bronze_growup_df`
+4. Run `silver_layer.ipynb` to clean, transform, and merge the source tables into:
+   - `silver_wdi_df`
+   - `silver_growup_df`
+   - `silver_merged_df`
+5. Run `gold_layer.ipynb` to create the Gold summary table:
+   - `gold_annual_statistics`
+6. Run `spark_mllib_kmeans.ipynb` to train the Spark MLlib KMeans pipeline with CrossValidator and save:
+   - `gold_kmeans_cv_results`
+   - `gold_kmeans_country_clusters`
+   - `/Volumes/workspace/default/raw/models/phase3_kmeans_model`
+
+The Phase 3 ML notebook reads from `workspace.default.silver_merged_df`, so the Bronze and Silver notebooks must run successfully before the ML notebook.
