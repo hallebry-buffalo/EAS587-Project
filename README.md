@@ -25,26 +25,34 @@ How to Replicate Phase 1 Results:
 
 Phase 3 notebooks are exported in `src/phase3/`.
 
-1. Upload these raw files to the Databricks volume path `/Volumes/workspace/default/raw/`:
-   - `data/raw/WDICSV.csv`
-   - `data/raw/GROWupRaw.csv`
+1. Upload raw CSV files to the Databricks volume path `/Volumes/workspace/default/raw/`:
+   - Raw CSV files must be accessed on UBBox via this link: https://buffalo.box.com/s/qxw3vl7o2ti5y3ap3jjf0527k4bzamnp 
 2. Import the notebooks in this order:
    - `src/phase3/bronze_layer.ipynb`
    - `src/phase3/silver_layer.ipynb`
    - `src/phase3/gold_layer.ipynb`
    - `src/phase3/spark_mllib_kmeans.ipynb`
+   - `src/phase3/vdem_kmeans.ipynb`
+   - `src/phase3/time_series.ipynb`
 3. Run `bronze_layer.ipynb` to create the Bronze Delta tables:
    - `bronze_wdi_df`
    - `bronze_growup_df`
+   - `bronze_vdem_df`
 4. Run `silver_layer.ipynb` to clean, transform, and merge the source tables into:
    - `silver_wdi_df`
    - `silver_growup_df`
-   - `silver_merged_df`
+   - `silver_vdem_df`
+   - `silver_merged_df` (DOES NOT CONTAIN VDEM DATA)
+   - `silver_merged_vdem_df` (CONTAINS VDEM DATA)
 5. Run `gold_layer.ipynb` to create the Gold summary table:
    - `gold_annual_statistics`
-6. Run `spark_mllib_kmeans.ipynb` to train the Spark MLlib KMeans pipeline with CrossValidator and save:
+6. Run `spark_mllib_kmeans.ipynb` to train the Spark MLlib KMeans pipeline and save:
    - `gold_kmeans_cv_results`
    - `gold_kmeans_country_clusters`
    - `/Volumes/workspace/default/raw/models/phase3_kmeans_model`
-
-The Phase 3 ML notebook reads from `workspace.default.silver_merged_df`, so the Bronze and Silver notebooks must run successfully before the ML notebook.
+7. Run `vdem_kmeans.ipynb` to train the Spark MLlib KMeans pipeline with V-Dems augmented dataset and save:
+   - `/Volumes/workspace/default/raw/models/phase3_kmeans_vdem_model`
+8. Run `time_series.ipynb` to train the Spark MLlib time series-esque algorithm using GBT regression and save:
+   - `/Volumes/workspace/default/raw/models/phase3_ts_model`
+  
+The Phase 3 ML notebooks reads from `workspace.default.silver_merged_df` and `workspace.default.silver_merged_vdem_df`, so the Bronze and Silver notebooks must run successfully before the ML notebook.
