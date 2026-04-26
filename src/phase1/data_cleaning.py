@@ -92,6 +92,9 @@ print("\nTop 250 Most Complete Indicators:")
 #print(top_500_complete[['indicator_name', 'missing_count_mean', 'missing_count_min','missing_count_max']].head(500).to_string())
 print(top_500_complete['indicator_name'].head(250).to_list())
 
+# Dropping cols that still have fewer than 10 years of data available 
+filtered_wdi_df = filtered_wdi_df.dropna(thresh = 10)
+
 # Re-assessing missing values
 total_missing_filtered = filtered_wdi_df.isnull().sum().sum()
 total_cells_filtered = filtered_wdi_df.size
@@ -102,8 +105,6 @@ print(f"Filtered dataset total missing values: {total_missing_filtered:,}")
 print(f"Filtered dataset total cells: {total_cells_filtered:,}")
 print(f"Filtered dataset missing values percentage: {missing_percentage_filtered:.2f}%")
 
-# Dropping cols that still have fewer than 10 years of data available 
-filtered_wdi_df = filtered_wdi_df.dropna(thresh = 10)
 
 # Imputing missing values 
 imputed_df = filtered_wdi_df.copy()
@@ -139,4 +140,4 @@ for indicator in indicators:
                     imputed_df.loc[idx, year_col] = row[year_col] / pop_row.iloc[0][year_col]
 
 # Saving imputed_df to csv
-imputed_df.to_csv('data/processed/WDIcleaned.csv', index=False)
+# imputed_df.to_csv('data/processed/WDIcleaned.csv', index=False)
